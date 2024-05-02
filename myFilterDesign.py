@@ -142,11 +142,11 @@ class FilterDesignApp:
 
         # Apply selected filter type
         if filter_type == 'Butterworth':
-            b, a = butter(order, cutoff_freq, btype='low')
+            [b, a] = butter(order, cutoff_freq)
         elif filter_type == 'Bessel':
-            b, a = bessel(order, cutoff_freq, btype='low')
+            [b, a] = bessel(order, cutoff_freq)
         elif filter_type == 'Chebyshev':
-            b, a = cheby1(order, 0.5, cutoff_freq, btype='low')
+            [b, a] = cheby1(order, 0.5, cutoff_freq)
 
         filtered_signal = filtfilt(b, a, signal)
 
@@ -172,6 +172,7 @@ class FilterDesignApp:
         ax2.set_xlabel('Frequency [Hz]')
         ax2.set_ylabel('Magnitude [dB]')
         ax2.set_title(f'{filter_type} Filter Frequency Response')
+        ax2.set_ylim([-100, 10])
         ax2.grid(True)
         ax2.axvline(cutoff_freq * sampling_freq, color='r', linestyle='--',
                     label=f'Cutoff Frequency: {cutoff_freq * sampling_freq} Hz')

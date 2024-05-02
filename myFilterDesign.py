@@ -6,6 +6,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from scipy.signal import butter, cheby1, bessel, freqz, filtfilt, tf2zpk
 import pandas as pd
 
+
 class myFilterApp:
     def __init__(self, master):
         self.master = master
@@ -22,7 +23,8 @@ class myFilterApp:
         self.signal_type_label.grid(row=0, column=0, padx=10, pady=5, sticky='w')
         self.signal_types = ['Sine', 'Step', 'Square', 'Triangle', 'Sawtooth', 'Imported File']
         self.signal_type_var = tk.StringVar()
-        self.signal_type_combobox = ttk.Combobox(self.left_frame, textvariable=self.signal_type_var, values=self.signal_types)
+        self.signal_type_combobox = ttk.Combobox(self.left_frame, textvariable=self.signal_type_var,
+                                                 values=self.signal_types)
         self.signal_type_combobox.set('Step')  # Default signal type
         self.signal_type_combobox.grid(row=0, column=1, padx=10, pady=5, sticky='we')
 
@@ -31,7 +33,8 @@ class myFilterApp:
         self.filter_type_label.grid(row=1, column=0, padx=10, pady=5, sticky='w')
         self.filter_types = ['Butterworth', 'Bessel', 'Chebyshev']
         self.filter_type_var = tk.StringVar()
-        self.filter_type_combobox = ttk.Combobox(self.left_frame, textvariable=self.filter_type_var, values=self.filter_types)
+        self.filter_type_combobox = ttk.Combobox(self.left_frame, textvariable=self.filter_type_var,
+                                                 values=self.filter_types)
         self.filter_type_combobox.set('Butterworth')  # Default filter type
         self.filter_type_combobox.grid(row=1, column=1, padx=10, pady=5, sticky='we')
 
@@ -93,7 +96,8 @@ class myFilterApp:
         self.data = None
 
     def upload_csv(self):
-        file_path = filedialog.askopenfilename(title="Select CSV File", filetypes=(("CSV files", "*.csv"), ("All files", "*.*")))
+        file_path = filedialog.askopenfilename(title="Select CSV File",
+                                               filetypes=(("CSV files", "*.csv"), ("All files", "*.*")))
         if file_path:
             self.data = pd.read_csv(file_path)
             # Enable comboboxes and update choices
@@ -169,7 +173,8 @@ class myFilterApp:
         ax2.set_ylabel('Magnitude [dB]')
         ax2.set_title(f'{filter_type} Filter Frequency Response')
         ax2.grid(True)
-        ax2.axvline(cutoff_freq * sampling_freq, color='r', linestyle='--', label=f'Cutoff Frequency: {cutoff_freq * sampling_freq} Hz')
+        ax2.axvline(cutoff_freq * sampling_freq, color='r', linestyle='--',
+                    label=f'Cutoff Frequency: {cutoff_freq * sampling_freq} Hz')
         ax2.legend()
 
         # Compute poles and zeros of the filter

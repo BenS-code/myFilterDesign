@@ -7,7 +7,7 @@ from scipy.signal import butter, cheby1, bessel, freqz, filtfilt, tf2zpk
 import pandas as pd
 
 
-class myFilterApp:
+class FilterDesignApp:
     def __init__(self, master):
         self.master = master
         master.title("myFilterDesign")
@@ -193,7 +193,7 @@ class myFilterApp:
 
 
 root = tk.Tk()
-app = myFilterApp(root)
+app = FilterDesignApp(root)
 root.columnconfigure(0, weight=1)
 root.columnconfigure(1, weight=1)
 root.rowconfigure(0, weight=1)

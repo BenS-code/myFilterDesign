@@ -56,7 +56,7 @@ class FilterDesignApp:
         # Sampling frequency slider
         self.sampling_label = tk.Label(self.left_frame, text="Sampling Frequency:")
         self.sampling_label.grid(row=4, column=0, padx=10, pady=5, sticky='w')
-        self.sampling_scale = tk.Scale(self.left_frame, from_=1, to=400, orient=tk.HORIZONTAL)
+        self.sampling_scale = tk.Scale(self.left_frame, from_=1, to=200, orient=tk.HORIZONTAL)
         self.sampling_scale.set(100)  # Default sampling frequency
         self.sampling_scale.grid(row=4, column=1, padx=10, pady=5, sticky='we')
 
@@ -115,8 +115,8 @@ class FilterDesignApp:
             # Enable comboboxes and update choices
             self.time_col_combobox['state'] = 'readonly'
             self.signal_col_combobox['state'] = 'readonly'
-            self.time_col_combobox['values'] = self.data.columns
-            self.signal_col_combobox['values'] = self.data.columns
+            self.time_col_combobox['values'] = list(self.data.columns)
+            self.signal_col_combobox['values'] = list(self.data.columns)
             # Add an option to signal types for the imported file
             self.signal_types = ['Sine', 'Step', 'Square', 'Triangle', 'Sawtooth', 'Imported File']
             self.signal_type_combobox['values'] = self.signal_types
@@ -147,6 +147,9 @@ class FilterDesignApp:
         t = np.linspace(0, 10, int(sampling_freq * 10))
         signal_type = self.signal_type_var.get()
         signal = self.generate_signal(signal_type, t)
+
+        if signal_type == 'Imported File':
+            t = self.data[self.time_col_var.get()].values
 
         # Get parameters from sliders and comboboxes
         filter_type = self.filter_type_var.get()

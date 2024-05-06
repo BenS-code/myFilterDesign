@@ -1,9 +1,9 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, END
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from scipy.signal import butter, cheby1, bessel, freqz, filtfilt, tf2zpk
+from scipy.signal import butter, cheby1, bessel, freqz, lfilter, tf2zpk
 import pandas as pd
 
 
@@ -12,7 +12,8 @@ class FilterDesignApp:
         self.master = master
         master.title("myFilterDesign")
         # Set minimum size of the window
-        master.minsize(1400, 600)  # Example minimum size: 800x600 pixels
+        master.geometry('1600x800')
+        master.minsize(1600, 800)
 
         # Left side widgets (sliders, buttons, comboboxes)
         self.left_frame = tk.Frame(master)
@@ -48,7 +49,7 @@ class FilterDesignApp:
         # Cutoff frequency slider
         self.cutoff_label = tk.Label(self.left_frame, text="Cutoff Frequency:")
         self.cutoff_label.grid(row=3, column=0, padx=10, pady=5, sticky='w')
-        self.cutoff_scale = tk.Scale(self.left_frame, from_=0.1, to=100, resolution=0.1, orient=tk.HORIZONTAL)
+        self.cutoff_scale = tk.Scale(self.left_frame, from_=1, to=100, resolution=1, orient=tk.HORIZONTAL)
         self.cutoff_scale.set(18)  # Default cutoff frequency
         self.cutoff_scale.grid(row=3, column=1, padx=10, pady=5, sticky='we')
 
@@ -80,15 +81,26 @@ class FilterDesignApp:
         self.filter_button = tk.Button(self.left_frame, text="Apply Filter", command=self.apply_filter)
         self.filter_button.grid(row=8, column=0, columnspan=2, padx=10, pady=5, sticky='we')
 
+        # text entry for filter's coefficients
+        self.filter_a_coefficients_label = tk.Label(self.left_frame, text="Filter Coefficients a =")
+        self.filter_a_coefficients_label.grid(row=9, column=0, padx=10, pady=5, sticky='w')
+        self.filter_a_coefficients_text = tk.Text(self.left_frame, height=6, width=20)
+        self.filter_a_coefficients_text.grid(row=9, column=1, padx=10, pady=5, sticky='we')
+
+        self.filter_b_coefficients_label = tk.Label(self.left_frame, text="Filter Coefficients b =")
+        self.filter_b_coefficients_label.grid(row=10, column=0, padx=10, pady=5, sticky='w')
+        self.filter_b_coefficients_text = tk.Text(self.left_frame, height=6, width=20)
+        self.filter_b_coefficients_text.grid(row=10, column=1, padx=10, pady=5, sticky='we')
+
         self.close_button = tk.Button(self.left_frame, text="Close", command=master.quit)
-        self.close_button.grid(row=9, column=0, columnspan=2, padx=10, pady=5, sticky='we')
+        self.close_button.grid(row=11, column=0, columnspan=2, padx=10, pady=5, sticky='we')
 
         # Right side canvas
         self.canvas_frame = tk.Frame(master)
         self.canvas_frame.grid(row=0, column=1, padx=10, pady=5, sticky='nsew')
 
         # Create a canvas to display the plot
-        self.figure = plt.Figure(figsize=(10, 8), dpi=100)
+        self.figure = plt.Figure(figsize=(12, 8), dpi=100)
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.canvas_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
@@ -131,24 +143,31 @@ class FilterDesignApp:
     def apply_filter(self):
         # Generate signal
         sampling_freq = self.sampling_scale.get()
+        nyquist = sampling_freq / 2
         t = np.linspace(0, 10, int(sampling_freq * 10))
         signal_type = self.signal_type_var.get()
         signal = self.generate_signal(signal_type, t)
 
         # Get parameters from sliders and comboboxes
         filter_type = self.filter_type_var.get()
-        order = self.order_scale.get()
-        cutoff_freq = self.cutoff_scale.get() / sampling_freq  # Normalize cutoff frequency
+        order = int(self.order_scale.get())
+        cutoff_freq = self.cutoff_scale.get() / nyquist  # Normalized cutoff frequency
 
         # Apply selected filter type
+        a = 0
+        b = 0
         if filter_type == 'Butterworth':
-            [b, a] = butter(order, cutoff_freq)
+            [b, a] = butter(order, cutoff_freq, analog=False)
         elif filter_type == 'Bessel':
-            [b, a] = bessel(order, cutoff_freq)
+            [b, a] = bessel(order, cutoff_freq, analog=False)
         elif filter_type == 'Chebyshev':
-            [b, a] = cheby1(order, 0.5, cutoff_freq)
+            [b, a] = cheby1(order, 0.5, cutoff_freq, analog=False)
 
-        filtered_signal = filtfilt(b, a, signal)
+        filtered_signal = lfilter(b, a, signal)
+        self.filter_a_coefficients_text.delete('1.0', END)
+        self.filter_b_coefficients_text.delete('1.0', END)
+        self.filter_a_coefficients_text.insert(END, a)
+        self.filter_b_coefficients_text.insert(END, b)
 
         # Clear previous plot
         self.figure.clear()
@@ -168,14 +187,14 @@ class FilterDesignApp:
         freq = 0.5 * 1 / np.pi * w * sampling_freq
         mag = np.abs(h)
         ax2 = self.figure.add_subplot(221)
-        ax2.plot(freq, 20 * np.log10(mag), 'b')
+        ax2.semilogx(freq, 20 * np.log10(mag), 'b')
         ax2.set_xlabel('Frequency [Hz]')
         ax2.set_ylabel('Magnitude [dB]')
-        ax2.set_title(f'{filter_type} Filter Frequency Response')
-        ax2.set_ylim([-100, 10])
+        ax2.set_title(f'{filter_type} Frequency Response')
+        ax2.set_ylim([-40, 10])
         ax2.grid(True)
-        ax2.axvline(cutoff_freq * sampling_freq, color='r', linestyle='--',
-                    label=f'Cutoff Frequency: {cutoff_freq * sampling_freq} Hz')
+        ax2.axvline(cutoff_freq * nyquist, color='r', linestyle='--',
+                    label=f'Cutoff Frequency: {cutoff_freq * nyquist} Hz')
         ax2.legend()
 
         # Compute poles and zeros of the filter
